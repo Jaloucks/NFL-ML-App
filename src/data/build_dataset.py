@@ -1,6 +1,7 @@
 import pandas as pd
 from src.config import DATA_RAW_DIR, DATA_PROCESSED_DIR
 from src.data.utils import save_raw
+from src.features.build_team_history import compute_rest_days, compute_season_to_date_stats
 
 TEAM_ABBR_MAP = {
     "SD": "LAC",
@@ -13,6 +14,10 @@ team_stats = pd.read_csv(DATA_RAW_DIR / "team_stats.csv")
 
 schedules["home_team"] = schedules["home_team"].replace(TEAM_ABBR_MAP)
 schedules["away_team"] = schedules["away_team"].replace(TEAM_ABBR_MAP)
+schedules["is_playoff"] = (schedules["game_type"] != "REG").astype(int)
+
+schedules = compute_rest_days(schedules)
+team_stats_pregame = compute_season_to_date_stats(team_stats)
 
 schedule_teams = set(schedules["home_team"].unique()) | set(schedules["away_team"].unique())
 team_stats_teams = set(team_stats["team"].unique())
@@ -53,8 +58,8 @@ def build_game_team_dataset(schedules: pd.DataFrame, team_stats: pd.DataFrame) -
     return merged
 
 if __name__ == "__main__":
-    game_dataset = build_game_team_dataset(schedules, team_stats)
+    game_dataset = build_game_team_dataset(schedules, team_stats_pregame)
     print("Row count matches schedules:", len(game_dataset) == len(schedules))
     print("Nulls in home_passing_yards:", game_dataset["home_passing_yards"].isna().sum())
     print("Nulls in away_passing_yards:", game_dataset["away_passing_yards"].isna().sum())
-    save_raw(game_dataset, "game_team_stats.csv", DATA_PROCESSED_DIR)
+    save_raw(game_dataset, "game_features_team.csv", DATA_PROCESSED_DIR)
