@@ -34,7 +34,7 @@ def fit(X: np.ndarray, y: np.ndarray, learning_rate: float, num_iterations: int)
     final w, b, and the loss recorded at every iteration (for diagnosing
     whether training actually converged).
     """
-    w = [0 for i in range(1, X.shape[0])]
+    w = np.zeros(X.shape[1])
     b = 0.0
     loss_history = []
     for i in range(0, num_iterations):
